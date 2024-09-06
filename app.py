@@ -1,3 +1,6 @@
+#https://github.com/vndee
+
+
 #!/bin/env python3
 import os
 import tempfile
@@ -6,6 +9,9 @@ from streamlit_chat import message
 from rag import ChatPDF
 
 st.set_page_config(page_title="ChatPDF")
+
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def display_messages():
@@ -45,11 +51,11 @@ def page():
         st.session_state["messages"] = []
         st.session_state["assistant"] = ChatPDF()
 
-    st.header("ChatPDF")
+    st.header("BOT Leasing Especializado (RAG)")
 
-    st.subheader("Upload a document")
+    st.subheader("Cargar Documento")
     st.file_uploader(
-        "Upload document",
+        "Cargar Documento",
         type=["pdf"],
         key="file_uploader",
         on_change=read_and_save_file,

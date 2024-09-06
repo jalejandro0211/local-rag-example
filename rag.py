@@ -7,9 +7,13 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.utils import filter_complex_metadata
+from utils import strip_accents
 
 from langchain.globals import set_verbose
 set_verbose(False) # 
+
+
+#Para limpiar de caracteres extraños 
 
 
 class ChatPDF:
@@ -36,14 +40,23 @@ class ChatPDF:
         docs = PyPDFLoader(file_path=pdf_file_path).load()
         chunks = self.text_splitter.split_documents(docs)
         chunks = filter_complex_metadata(chunks)
-        with open("resultado.txt", "w") as archivo:
-            for item in chunks:
-                archivo.write(f"{item}\n")
-
+        # print(chunks)
+        # chunks = strip_accents(chunks)
+        # print(chunks)
+        # with open("resultado.txt", "w") as archivo:
+        #      for item in chunks:
+        #          archivo.write(f"{item}\n")
+        # #         archivo.write(chunks)
+        #print(chunks)
         #vector_store = Chroma.from_documents(documents=chunks, embedding=FastEmbedEmbeddings())
-        vector_store = Chroma.from_documents(chunks, embedding=FastEmbedEmbeddings(), ids=None, collection_name="langchain", persist_directory="./chroma_db")
+        vector_store = Chroma.from_documents(
+            chunks, 
+            embedding=FastEmbedEmbeddings(), 
+            ids=None, 
+            collection_name="langchain", 
+            persist_directory="./chroma_db"
+        )
 
-        print(vector_store)
         self.retriever = vector_store.as_retriever(
             search_type="similarity_score_threshold",
             search_kwargs={
@@ -67,3 +80,4 @@ class ChatPDF:
         self.vector_store = None
         self.retriever = None
         self.chain = None
+

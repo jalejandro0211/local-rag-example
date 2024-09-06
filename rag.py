@@ -8,6 +8,9 @@ from langchain.schema.runnable import RunnablePassthrough
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.utils import filter_complex_metadata
 
+from langchain.globals import set_verbose
+set_verbose(False) # 
+
 
 class ChatPDF:
     vector_store = None
@@ -15,13 +18,14 @@ class ChatPDF:
     chain = None
 
     def __init__(self):
-        self.model = ChatOllama(model="mistral")
-        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
+        self.model = ChatOllama(model="qwen2:1.5b", temperature=0)
+        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100, )
         self.prompt = PromptTemplate.from_template(
             """
-            <s> [INST] You are an assistant for question-answering tasks. Use the following pieces of retrieved context 
-            to answer the question. If you don't know the answer, just say that you don't know. Use three sentences
-             maximum and keep the answer concise. [/INST] </s> 
+            <s> [INST] Eres un asistente para tareas de respuesta a preguntas. Usa los siguientes fragmentos de contexto 
+            recuperado para responder la pregunta. Si no sabes la respuesta, simplemente di que no la sabes.
+            SIEMPRE RESPONDE EN ESPAÑOL.
+            Usa un máximo de tres oraciones y mantén la respuesta concisa. [/INST] </s> 
             [INST] Question: {question} 
             Context: {context} 
             Answer: [/INST]
@@ -32,8 +36,14 @@ class ChatPDF:
         docs = PyPDFLoader(file_path=pdf_file_path).load()
         chunks = self.text_splitter.split_documents(docs)
         chunks = filter_complex_metadata(chunks)
+        with open("resultado.txt", "w") as archivo:
+            for item in chunks:
+                archivo.write(f"{item}\n")
 
-        vector_store = Chroma.from_documents(documents=chunks, embedding=FastEmbedEmbeddings())
+        #vector_store = Chroma.from_documents(documents=chunks, embedding=FastEmbedEmbeddings())
+        vector_store = Chroma.from_documents(chunks, embedding=FastEmbedEmbeddings(), ids=None, collection_name="langchain", persist_directory="./chroma_db")
+
+        print(vector_store)
         self.retriever = vector_store.as_retriever(
             search_type="similarity_score_threshold",
             search_kwargs={
